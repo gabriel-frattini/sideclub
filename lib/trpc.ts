@@ -6,6 +6,7 @@ import { activityReducer } from 'utils/reducer'
 import superjson from 'superjson'
 
 export const trpc = createReactQueryHooks<AppRouter>()
+
 export const trpcReducer = createTrpcReducer<AppRouter>(activityReducer, trpc)
 export const transformer = superjson
 

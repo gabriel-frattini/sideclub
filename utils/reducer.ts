@@ -1,9 +1,9 @@
 import { AppRouter } from '@/server/routers/_app'
-import { ReducerActions, ReducerOutput } from '@/lib/createTrpcReducer'
+import { ReducerActions, ReducerOutput } from 'trpc-reducer'
 
 export function activityReducer(
   state: any,
-  action: ReducerActions<AppRouter>
+  action: any
 ): ReducerOutput<AppRouter> {
   const { type, payload } = action
 
@@ -39,7 +39,7 @@ export function activityReducer(
             {
               user: { id: payload.userId },
               project: { id: payload.projectId },
-              type: type,
+              type: payload.type,
             },
           ],
         },
@@ -51,7 +51,7 @@ export function activityReducer(
           ...state.project,
           votedBy: [
             ...state.project.votedBy.filter(
-              (item) => item.user.id !== payload.userId
+              (item: any) => item.user.id !== payload.userId
             ),
           ],
         },

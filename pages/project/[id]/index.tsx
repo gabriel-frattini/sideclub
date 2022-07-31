@@ -91,11 +91,13 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
     setIsConfirmDeleteDialogOpen(true)
   }
 
-  const { state, dispatch } = trpcReducer.useTrpcReducer<AppRouter>(
+  const { state, dispatch } = trpcReducer.useTrpcReducer(
     projectQueryPathAndInput,
     {
       arg_0: ['project.request-to-join'],
       arg_1: ['project.cancel-request'],
+      arg_2: ['project.vote'],
+      arg_3: ['project.undo-vote'],
     }
   )
 
@@ -124,9 +126,13 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
     type voteProps = { type: 'UP' | 'DOWN' }
 
     const handleVote = ({ type }: voteProps) => {
-      voteMutation.mutate({
-        projectId: state.data.project.id,
-        type,
+      dispatch({
+        payload: {
+          projectId: state.data.project.id,
+          userId: session.user.id,
+          type,
+        },
+        type: ['project.vote'],
       })
     }
 
@@ -145,8 +151,12 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
             <VoteButton
               votedBy={state.data.project.votedBy}
               onUnVote={() =>
-                unVoteMutation.mutate({
-                  projectId: state.data.project.id,
+                dispatch({
+                  payload: {
+                    projectId: state.data.project.id,
+                    userId: session.user.id,
+                  },
+                  type: ['project.undo-vote'],
                 })
               }
               onDownvote={() =>
