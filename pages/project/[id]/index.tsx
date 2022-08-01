@@ -63,9 +63,18 @@ function getProjectQueryPathAndInput(
 const ProjectPage: NextPageWithAuthAndLayout = () => {
   const { data: session } = useSession()
   const router = useRouter()
-  const utils = trpc.useContext()
   const projectQueryPathAndInput = getProjectQueryPathAndInput(
     Number(router.query.id)
+  )
+
+  const { state, dispatch } = trpcReducer.useTrpcReducer(
+    projectQueryPathAndInput,
+    {
+      arg_0: ['project.request-to-join'],
+      arg_1: ['project.cancel-request'],
+      arg_2: ['project.vote'],
+      arg_3: ['project.undo-vote'],
+    }
   )
 
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] =
@@ -84,22 +93,12 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
   }
 
   function handleEdit() {
-    router.push(`/project/${projectQuery.data?.project.id}/edit`)
+    router.push(`/project/${state.data?.project.id}/edit`)
   }
 
   function handleDelete() {
     setIsConfirmDeleteDialogOpen(true)
   }
-
-  const { state, dispatch } = trpcReducer.useTrpcReducer(
-    projectQueryPathAndInput,
-    {
-      arg_0: ['project.request-to-join'],
-      arg_1: ['project.cancel-request'],
-      arg_2: ['project.vote'],
-      arg_3: ['project.undo-vote'],
-    }
-  )
 
   if (state.data && state.data.project) {
     const isUserAdmin = session!?.user.role === 'ADMIN'
@@ -116,24 +115,31 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
       })
     }
 
-    const handleCancelJoin = () => {
+    const handleCancelRequest = ({ join }: { join: boolean }) => {
       dispatch({
         payload: { requestId: state.data.requestedByUser![0].id },
         type: ['project.cancel-request'],
+        args: { join },
       })
+    }
+
+    const handleInviteRequest = () => {
+      return
     }
 
     type voteProps = { type: 'UP' | 'DOWN' }
 
     const handleVote = ({ type }: voteProps) => {
-      dispatch({
-        payload: {
-          projectId: state.data.project.id,
-          userId: session.user.id,
-          type,
-        },
-        type: ['project.vote'],
-      })
+      if (session) {
+        dispatch({
+          payload: {
+            projectId: state.data.project.id,
+            userId: session.user.id,
+            type,
+          },
+          type: ['project.vote'],
+        })
+      }
     }
 
     const myVote = state.data.project.votedBy.filter(
@@ -150,15 +156,17 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
           <div className="absolute w-12 h-full mt-12 ml-4 flex justify-center">
             <VoteButton
               votedBy={state.data.project.votedBy}
-              onUnVote={() =>
-                dispatch({
-                  payload: {
-                    projectId: state.data.project.id,
-                    userId: session.user.id,
-                  },
-                  type: ['project.undo-vote'],
-                })
-              }
+              onUnVote={() => {
+                if (session) {
+                  dispatch({
+                    payload: {
+                      projectId: state.data.project.id,
+                      userId: session.user.id,
+                    },
+                    type: ['project.undo-vote'],
+                  })
+                }
+              }}
               onDownvote={() =>
                 handleVote({
                   type: 'DOWN',
@@ -296,7 +304,7 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
                     (details) => details.user.id === session?.user.id
                   )}
                   isLoading={state.isLoading}
-                  onCancel={handleCancelJoin}
+                  onCancel={() => handleCancelRequest({ join: true })}
                   onActionChildren={<p>Join</p>}
                   didPerformActionChildren={<p>Cancel</p>}
                 />
@@ -322,7 +330,8 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
                 {state.data.project.comments.map((comment) => (
                   <li key={comment.id}>
                     <Comment
-                      projectPathAndInput={projectQueryPathAndInput}
+                      onCancel={() => handleCancelRequest({ join: false })}
+                      onInvite={handleInviteRequest}
                       projectId={state.data.project.id}
                       comment={comment}
                       invitedByOwner={state.data.invitedByUser}
@@ -423,12 +432,14 @@ ProjectPage.getLayout = function getLayout(page: React.ReactElement) {
 }
 
 function Comment({
-  projectQueryPathAndInput,
+  onCancel,
+  onInvite,
   projectId,
   comment,
   invitedByOwner,
 }: {
-  projectQueryPathAndInput: InferQueryPathAndInput<'public.project-detail'>
+  onCancel: () => void
+  onInvite: () => void
   projectId: number
   comment: InferQueryOutput<'public.project-detail'>['project']['comments'][number]
   invitedByOwner: InferQueryOutput<'public.project-detail'>['invitedByUser']
@@ -437,67 +448,6 @@ function Comment({
   const [isEditing, setIsEditing] = React.useState(false)
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] =
     React.useState(false)
-  const utils = trpc.useContext()
-
-  const inviteMutation = trpc.useMutation(['project.invite-to-project'], {
-    onSuccess: async ({ userId, id }) => {
-      await utils.cancelQuery(projectQueryPathAndInput)
-
-      const previousProject = utils.getQueryData(projectQueryPathAndInput)
-      if (previousProject) {
-        utils.setQueryData(projectQueryPathAndInput, {
-          ...previousProject,
-          invitedByUser: [
-            {
-              user: {
-                id: userId,
-              },
-              project: {
-                ownerId: session!.user.id,
-              },
-              id,
-            },
-          ],
-        })
-      }
-    },
-  })
-
-  const cancelInviteMutation = trpc.useMutation(['project.cancel-request'], {
-    onMutate: async ({ requestId }) => {
-      await utils.cancelQuery(projectQueryPathAndInput)
-
-      const previousProject = utils.getQueryData(projectQueryPathAndInput)
-
-      if (previousProject) {
-        utils.setQueryData(projectQueryPathAndInput, {
-          ...previousProject,
-          invitedByUser: [],
-        })
-      }
-
-      return { previousProject }
-    },
-    onError: (err, id, context: any) => {
-      if (context?.previousproject) {
-        utils.setQueryData(projectQueryPathAndInput, context.previousproject)
-      }
-    },
-  })
-
-  const handleInvite = (userIdFromComment: string) => {
-    inviteMutation.mutate({
-      message: 'hey do you want to join',
-      userId: userIdFromComment,
-      projectId: projectId,
-    })
-  }
-
-  const handleCancelInvite = () => {
-    cancelInviteMutation.mutate({
-      requestId: invitedByOwner[0].id,
-    })
-  }
 
   const commentBelongsToUser = comment.owner.id === session!?.user.id
 
@@ -550,12 +500,11 @@ function Comment({
           <div>
             <ActionButton
               disabled={!session!.user.id}
-              onAction={() => handleInvite(comment.owner.id)}
+              onAction={() => onInvite}
               didPerformAction={invitedByOwner.some(
                 (details) => details.project.ownerId === session!.user.id
               )}
-              onCancel={handleCancelInvite}
-              isLoading={inviteMutation.isLoading}
+              onCancel={onCancel}
               onActionChildren={<p>Invite</p>}
               didPerformActionChildren={<p>Cancel</p>}
             />

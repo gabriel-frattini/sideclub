@@ -6,9 +6,15 @@ export function activityReducer(
   action: any
 ): ReducerOutput<AppRouter> {
   const { type, payload } = action
-
+  console.log('action', action)
   switch (type[0]) {
-    case 'project.cancel-request':
+    case 'project.cancel-join-request':
+      if (action.join) {
+        return {
+          ...state,
+          invitedByUser: [],
+        }
+      }
       return {
         ...state,
         requestedByUser: [],
@@ -56,6 +62,22 @@ export function activityReducer(
           ],
         },
       }
+    case 'project.invite-to-project':
+      return {
+        ...state,
+        invitedByUser: [
+          {
+            user: {
+              id: payload.userId,
+            },
+            project: {
+              ownerId: payload.userId,
+            },
+            id: payload.id,
+          },
+        ],
+      }
+
     default:
       return state
   }
