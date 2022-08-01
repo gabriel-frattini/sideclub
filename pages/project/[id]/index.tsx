@@ -47,7 +47,7 @@ import {
   trpcReducer,
 } from '@/lib/trpc'
 import type { NextPageWithAuthAndLayout } from '@/lib/types'
-import { AppRouter } from '@/server/routers/_app'
+import { projectReducer } from 'utils/reducer'
 
 function getProjectQueryPathAndInput(
   id: number
@@ -68,6 +68,7 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
   )
 
   const { state, dispatch } = trpcReducer.useTrpcReducer(
+    projectReducer,
     projectQueryPathAndInput,
     {
       arg_0: ['project.request-to-join'],
@@ -107,10 +108,12 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
       state.data.project.owner.id === session!?.user.id
 
     const handleJoinRequest = () => {
+      if (!session) return
       dispatch({
         payload: {
           projectId: state.data.project.id,
           message: 'hey man',
+          userId: session.user.id,
         },
         type: ['project.request-to-join'],
       })
@@ -321,7 +324,7 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
                   disabled={!session?.user.id}
                   onAction={handleJoinRequest}
                   didPerformAction={state.data.requestedByUser.some(
-                    (details) => details.user.id === session?.user.id
+                    (details) => details.user.id === session!.user.id
                   )}
                   isLoading={state.isLoading}
                   onCancel={() => handleCancelRequest({ isInvite: false })}

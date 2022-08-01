@@ -1,18 +1,18 @@
 import { Button } from '@/components/button'
-import { classNames } from '@/lib/classnames'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { SpinnerIcon } from './icons'
 
 type ActionButtonProps = {
-  onAction: () => void
-  onCancel: () => void
-  didPerformAction: boolean
-  didPerformActionChildren: React.ReactNode
+  onAction?: () => void
+  onCancel?: () => void
+  didPerformAction?: boolean
+  didPerformActionChildren?: React.ReactNode
   isLoading?: boolean
-  onActionChildren: React.ReactNode
+  onActionChildren?: React.ReactNode
   disabled?: boolean
+  className?: string
 }
 
 export function ActionButton({
@@ -23,6 +23,7 @@ export function ActionButton({
   onActionChildren,
   didPerformActionChildren,
   disabled,
+  className,
 }: ActionButtonProps) {
   const { data: session } = useSession()
   const router = useRouter()
@@ -31,11 +32,16 @@ export function ActionButton({
     if (!session) {
       router.push('/sign-in')
     }
-    didPerformAction ? onCancel() : onAction()
+    if (onCancel && onAction) didPerformAction ? onCancel() : onAction()
+    if (onCancel && !onAction) onCancel()
   }
 
   return (
-    <Button onClick={handleClick} disabled={disabled || isLoading}>
+    <Button
+      onClick={handleClick}
+      className={className}
+      disabled={disabled || isLoading}
+    >
       {isLoading ? (
         <SpinnerIcon className="w-8 h-4 animate-spin" />
       ) : didPerformAction ? (

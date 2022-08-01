@@ -1,7 +1,7 @@
 import { AppRouter } from '@/server/routers/_app'
 import { ReducerActions, ReducerOutput } from 'trpc-reducer'
 
-export function activityReducer(
+export function projectReducer(
   state: any,
   action: any,
   args: { args: { isInvite: boolean } }
@@ -10,7 +10,6 @@ export function activityReducer(
   switch (type[0]) {
     case 'project.cancel-request':
       if (args && args.args.isInvite) {
-        console.log('here???')
         return {
           ...state,
           invitedByUser: [],
@@ -77,6 +76,26 @@ export function activityReducer(
             id: payload.id,
           },
         ],
+      }
+
+    default:
+      return state
+  }
+}
+
+export function activityReducer(
+  state: any,
+  action: any,
+  args: { args: { isInvite: boolean } }
+): ReducerOutput<AppRouter> {
+  const { type, payload } = action
+  switch (type[0]) {
+    case 'project.cancel-request':
+      return {
+        ...state,
+        activity: state.activity.filter(
+          (activity: any) => activity.id !== payload.requestId
+        ),
       }
 
     default:

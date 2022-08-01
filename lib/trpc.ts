@@ -2,12 +2,11 @@ import type { AppRouter } from '@/server/routers/_app'
 import { createReactQueryHooks } from '@trpc/react'
 import { createTrpcReducer } from 'trpc-reducer'
 import type { inferProcedureInput, inferProcedureOutput } from '@trpc/server'
-import { activityReducer } from 'utils/reducer'
 import superjson from 'superjson'
 
 export const trpc = createReactQueryHooks<AppRouter>()
 
-export const trpcReducer = createTrpcReducer<AppRouter>(activityReducer, trpc)
+export const trpcReducer = createTrpcReducer<AppRouter>(trpc)
 export const transformer = superjson
 
 export type TQuery = keyof AppRouter['_def']['queries']
