@@ -3,13 +3,14 @@ import { ReducerActions, ReducerOutput } from 'trpc-reducer'
 
 export function activityReducer(
   state: any,
-  action: any
+  action: any,
+  args: { args: { isInvite: boolean } }
 ): ReducerOutput<AppRouter> {
   const { type, payload } = action
-  console.log('action', action)
   switch (type[0]) {
-    case 'project.cancel-join-request':
-      if (action.join) {
+    case 'project.cancel-request':
+      if (args && args.args.isInvite) {
+        console.log('here???')
         return {
           ...state,
           invitedByUser: [],

@@ -74,6 +74,7 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
       arg_1: ['project.cancel-request'],
       arg_2: ['project.vote'],
       arg_3: ['project.undo-vote'],
+      arg_4: ['project.invite-to-project'],
     }
   )
 
@@ -115,16 +116,35 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
       })
     }
 
-    const handleCancelRequest = ({ join }: { join: boolean }) => {
-      dispatch({
-        payload: { requestId: state.data.requestedByUser![0].id },
-        type: ['project.cancel-request'],
-        args: { join },
-      })
+    const handleCancelRequest = ({ isInvite }: { isInvite: boolean }) => {
+      if (isInvite) {
+        dispatch(
+          {
+            payload: { requestId: state.data.invitedByUser![0].id },
+            type: ['project.cancel-request'],
+          },
+          { onlyUpdateCache: false, args: { isInvite } }
+        )
+      } else {
+        dispatch(
+          {
+            payload: { requestId: state.data.requestedByUser![0].id },
+            type: ['project.cancel-request'],
+          },
+          { onlyUpdateCache: false, args: { isInvite } }
+        )
+      }
     }
 
     const handleInviteRequest = () => {
-      return
+      dispatch({
+        payload: {
+          userId: session!.user.id,
+          projectId: state.data.project.id,
+          message: 'this is a invite',
+        },
+        type: ['project.invite-to-project'],
+      })
     }
 
     type voteProps = { type: 'UP' | 'DOWN' }
@@ -304,7 +324,7 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
                     (details) => details.user.id === session?.user.id
                   )}
                   isLoading={state.isLoading}
-                  onCancel={() => handleCancelRequest({ join: true })}
+                  onCancel={() => handleCancelRequest({ isInvite: false })}
                   onActionChildren={<p>Join</p>}
                   didPerformActionChildren={<p>Cancel</p>}
                 />
@@ -330,7 +350,7 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
                 {state.data.project.comments.map((comment) => (
                   <li key={comment.id}>
                     <Comment
-                      onCancel={() => handleCancelRequest({ join: false })}
+                      onCancel={() => handleCancelRequest({ isInvite: true })}
                       onInvite={handleInviteRequest}
                       projectId={state.data.project.id}
                       comment={comment}
@@ -500,7 +520,7 @@ function Comment({
           <div>
             <ActionButton
               disabled={!session!.user.id}
-              onAction={() => onInvite}
+              onAction={onInvite}
               didPerformAction={invitedByOwner.some(
                 (details) => details.project.ownerId === session!.user.id
               )}
