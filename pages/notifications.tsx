@@ -90,7 +90,7 @@ export function Activity({ activity, dispatch }: ActivityProps) {
       }),
     ])
   }
-
+  console.log(activity)
   return (
     <div className="flex flex-col justify-center items-center mt-4">
       <div className="flex mb-6 w-full items-center">
@@ -160,7 +160,7 @@ export function Activity({ activity, dispatch }: ActivityProps) {
               {activity.status === 'PENDING' ? (
                 <div className="flex justify-between items-center">
                   <p>
-                    Requested to join{' '}
+                    Invited you to join{' '}
                     <strong className="mr-2">{activity.project.title}</strong>{' '}
                     <time dateTime={activity.createdAt.toISOString()}>
                       {formatDistanceToNow(activity.createdAt)} ago
@@ -176,6 +176,16 @@ export function Activity({ activity, dispatch }: ActivityProps) {
                           requestId: activity.id,
                         },
                         type: ['project.cancel-request'],
+                      })
+                    }}
+                  />
+                  <ActionButton
+                    onActionChildren={'Accept'}
+                    onAction={() => {
+                      handleAcceptInvite({
+                        inviteId: activity.id,
+                        projectId: activity.project.id,
+                        userId: session.user.id,
                       })
                     }}
                   />

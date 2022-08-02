@@ -34,6 +34,7 @@ export function ActionButton({
     }
     if (onCancel && onAction) didPerformAction ? onCancel() : onAction()
     if (onCancel && !onAction) onCancel()
+    if (onAction && !onCancel) onAction()
   }
 
   return (

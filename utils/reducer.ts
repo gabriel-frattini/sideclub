@@ -97,6 +97,11 @@ export function activityReducer(
           (activity: any) => activity.id !== payload.requestId
         ),
       }
+    case 'project.accept-invite':
+      return {
+        ...state,
+        activity: state.activity.filter((activity: any) => activity),
+      }
 
     default:
       return state
