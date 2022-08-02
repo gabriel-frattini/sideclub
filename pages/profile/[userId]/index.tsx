@@ -227,7 +227,7 @@ function ActiveProjectsFeed() {
             <ul className="-my-12 divide-y divide-primary">
               {profileFeedQuery.data.activeProjects.map(({ Project }) => (
                 <li key={Project.id} className="py-10">
-                  <ProjectSummary hideOwner project={Project} />
+                  <ProjectSummary hideOwner project={Project} active={true} />
                 </li>
               ))}
             </ul>

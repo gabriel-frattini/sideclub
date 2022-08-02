@@ -14,9 +14,11 @@ import * as React from 'react'
 export type ProjectSummaryProps = {
   project: InferQueryOutput<'public.projects-feed'>['allProjects'][0]
   hideOwner?: boolean
+  active?: boolean
 }
 
 export function ProjectSummary({
+  active,
   project,
   hideOwner = false,
 }: ProjectSummaryProps) {
@@ -24,6 +26,7 @@ export function ProjectSummary({
     () => summarize(project.contentHtml),
     [project.contentHtml]
   )
+  const { data: session } = useSession()
 
   return (
     <div>
@@ -33,7 +36,14 @@ export function ProjectSummary({
         </Banner>
       )}
       <div className={classNames(project.hidden ? 'opacity-50' : '')}>
-        <Link href={`/project/${project.id}`}>
+        <Link
+          replace
+          href={
+            active
+              ? `/profile/${session!.user.id}/${project.id}`
+              : `/project/${project.id}`
+          }
+        >
           <a>
             <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">
               {project.title}

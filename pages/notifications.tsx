@@ -90,7 +90,6 @@ export function Activity({ activity, dispatch }: ActivityProps) {
       }),
     ])
   }
-  console.log(activity)
   return (
     <div className="flex flex-col justify-center items-center mt-4">
       <div className="flex mb-6 w-full items-center">
@@ -159,36 +158,67 @@ export function Activity({ activity, dispatch }: ActivityProps) {
             <div className="w-full">
               {activity.status === 'PENDING' ? (
                 <div className="flex justify-between items-center">
-                  <p>
-                    Invited you to join{' '}
-                    <strong className="mr-2">{activity.project.title}</strong>{' '}
-                    <time dateTime={activity.createdAt.toISOString()}>
-                      {formatDistanceToNow(activity.createdAt)} ago
-                    </time>{' '}
-                  </p>
+                  {activity.type === 'INVITE' ? (
+                    <>
+                      <p>
+                        Invited you to join{' '}
+                        <strong className="mr-2">
+                          {activity.project.title}
+                        </strong>{' '}
+                        <time dateTime={activity.createdAt.toISOString()}>
+                          {formatDistanceToNow(activity.createdAt)} ago
+                        </time>{' '}
+                      </p>
 
-                  <ActionButton
-                    className="mr-6"
-                    onActionChildren={'Remove'}
-                    onCancel={() => {
-                      dispatch({
-                        payload: {
-                          requestId: activity.id,
-                        },
-                        type: ['project.cancel-request'],
-                      })
-                    }}
-                  />
-                  <ActionButton
-                    onActionChildren={'Accept'}
-                    onAction={() => {
-                      handleAcceptInvite({
-                        inviteId: activity.id,
-                        projectId: activity.project.id,
-                        userId: session.user.id,
-                      })
-                    }}
-                  />
+                      <ActionButton
+                        className="mr-6"
+                        onActionChildren={'Remove'}
+                        onCancel={() => {
+                          dispatch({
+                            payload: {
+                              requestId: activity.id,
+                            },
+                            type: ['project.cancel-request'],
+                          })
+                        }}
+                      />
+                      <ActionButton
+                        onActionChildren={'Accept'}
+                        onAction={() => {
+                          handleAcceptInvite({
+                            inviteId: activity.id,
+                            projectId: activity.project.id,
+                            userId: activity.user.id,
+                          })
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        Requested to join{' '}
+                        <strong className="mr-2">
+                          {activity.project.title}
+                        </strong>{' '}
+                        <time dateTime={activity.createdAt.toISOString()}>
+                          {formatDistanceToNow(activity.createdAt)} ago
+                        </time>{' '}
+                      </p>
+
+                      <ActionButton
+                        className="mr-6"
+                        onActionChildren={'Remove'}
+                        onCancel={() => {
+                          dispatch({
+                            payload: {
+                              requestId: activity.id,
+                            },
+                            type: ['project.cancel-request'],
+                          })
+                        }}
+                      />
+                    </>
+                  )}
                 </div>
               ) : (
                 <p>

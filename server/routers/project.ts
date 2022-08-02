@@ -399,3 +399,79 @@ export const projectRouter = createProtectedRouter()
       return { data: myVote }
     },
   })
+  .query('active-project-detail', {
+    input: z.object({
+      id: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      const project = await ctx.prisma.project.findUnique({
+        where: {
+          id: input.id,
+        },
+        select: {
+          id: true,
+
+          title: true,
+          content: true,
+          contentHtml: true,
+          createdAt: true,
+          hidden: true,
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+            },
+          },
+          votedBy: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            select: {
+              type: true,
+              user: {
+                select: {
+                  id: true,
+                },
+              },
+              project: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+          comments: {
+            orderBy: {
+              createdAt: 'asc',
+            },
+            select: {
+              id: true,
+              private: true,
+              content: true,
+              contentHtml: true,
+              createdAt: true,
+              owner: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      const projectBelongsToUser = project?.owner.id === ctx.session?.user.id
+
+      if (!project || (project.hidden && !projectBelongsToUser)) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `No post with id '${input.id}'`,
+        })
+      }
+
+      return { project }
+    },
+  })
