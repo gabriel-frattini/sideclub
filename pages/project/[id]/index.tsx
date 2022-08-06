@@ -48,6 +48,7 @@ import {
 } from '@/lib/trpc'
 import type { NextPageWithAuthAndLayout } from '@/lib/types'
 import { projectReducer } from 'utils/reducer'
+import Link from 'next/link'
 
 function getProjectQueryPathAndInput(
   id: number
@@ -326,7 +327,7 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
                   didPerformAction={state.data.requestedByUser.some(
                     (details) => details.user.id === session!.user.id
                   )}
-                  isLoading={state.isLoading}
+                  isLoading={state.isDispatching}
                   onCancel={() => handleCancelRequest({ isInvite: false })}
                   onActionChildren={<p>Join</p>}
                   didPerformActionChildren={<p>Cancel</p>}
@@ -353,6 +354,7 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
                 {state.data.project.comments.map((comment) => (
                   <li key={comment.id}>
                     <Comment
+                      isLoading={state.isDispatching}
                       onCancel={() => handleCancelRequest({ isInvite: true })}
                       onInvite={handleInviteRequest}
                       projectId={state.data.project.id}
@@ -378,7 +380,11 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
                 <AddCommentForm projectId={state.data.project.id} />
               </div>
             ) : (
-              <div>Log in to post a comment</div>
+              <div className="cursor-pointer max-w-fit">
+                <Link href="/sign-in" replace>
+                  Log in to post a comment
+                </Link>
+              </div>
             )}
           </div>
         </div>
@@ -455,6 +461,7 @@ ProjectPage.getLayout = function getLayout(page: React.ReactElement) {
 }
 
 function Comment({
+  isLoading,
   onCancel,
   onInvite,
   projectId,
@@ -466,6 +473,7 @@ function Comment({
   projectId: number
   comment: InferQueryOutput<'public.project-detail'>['project']['comments'][number]
   invitedByOwner: InferQueryOutput<'public.project-detail'>['invitedByUser']
+  isLoading: boolean
 }) {
   const { data: session } = useSession()
   const [isEditing, setIsEditing] = React.useState(false)
@@ -522,11 +530,12 @@ function Comment({
         ) : (
           <div>
             <ActionButton
-              disabled={!session!.user.id}
+              disabled={session ? session.user.id : true}
               onAction={onInvite}
               didPerformAction={invitedByOwner.some(
                 (details) => details.project.ownerId === session!.user.id
               )}
+              isLoading={isLoading}
               onCancel={onCancel}
               onActionChildren={<p>Invite</p>}
               didPerformActionChildren={<p>Cancel</p>}
@@ -573,6 +582,7 @@ function AddCommentForm({ projectId }: { projectId: number }) {
       {
         projectId,
         content: data.content,
+        private: false,
       },
       {
         onSuccess: () => {

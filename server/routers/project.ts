@@ -223,6 +223,7 @@ export const projectRouter = createProtectedRouter()
   .mutation('update-invite-status', {
     input: z.object({
       inviteId: z.number(),
+      status: z.enum(['REJECT', 'ACCEPT']),
     }),
     async resolve({ ctx, input }) {
       await ctx.prisma.request.update({
@@ -230,7 +231,7 @@ export const projectRouter = createProtectedRouter()
           id: input.inviteId,
         },
         data: {
-          status: 'REJECT',
+          status: input.status,
         },
         select: {
           id: true,

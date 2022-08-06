@@ -8,13 +8,14 @@ export const commentRouter = createProtectedRouter()
     input: z.object({
       projectId: z.number(),
       content: z.string().min(1),
+      private: z.boolean(),
     }),
     async resolve({ ctx, input }) {
       const comment = await ctx.prisma.comment.create({
         data: {
           content: input.content,
           contentHtml: markdownToHtml(input.content),
-          private: false,
+          private: true,
           owner: {
             connect: {
               id: ctx.session.user.id,

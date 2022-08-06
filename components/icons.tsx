@@ -380,7 +380,7 @@ export function MarkdownIcon(props: IconProps) {
 }
 
 export function Logo(props: IconProps) {
-  return <div></div>
+  return <div className="font-sans font-bold text-2xl">Sideclub</div>
 }
 
 export function GithubLogo(props: IconProps) {

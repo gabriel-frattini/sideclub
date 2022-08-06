@@ -38,8 +38,12 @@ const Notifications: NextPageWithAuthAndLayout = () => {
       <ul className=" divide-y divide-primary">
         {state.data &&
           state.data.activity.map((activity, idx) => (
-            <li key={idx} className="py-10 bg-white">
-              <Activity dispatch={dispatch} activity={activity} />
+            <li key={idx} className="py-10 bg-white px-6 mb-4">
+              <Activity
+                dispatch={dispatch}
+                activity={activity}
+                isLoading={state.isDispatching}
+              />
             </li>
           ))}
       </ul>
@@ -56,9 +60,10 @@ Notifications.getLayout = function getLayout(page: React.ReactElement) {
 export type ActivityProps = {
   activity: InferQueryOutput<'user.activity'>['activity'][0]
   dispatch: (action: TDispatch<AppRouter>, ...args: any) => void
+  isLoading: boolean
 }
 
-export function Activity({ activity, dispatch }: ActivityProps) {
+export function Activity({ activity, dispatch, isLoading }: ActivityProps) {
   const { data: session } = useSession()
   if (!session) {
     return <></>
@@ -85,94 +90,109 @@ export function Activity({ activity, dispatch }: ActivityProps) {
       dispatch({
         payload: {
           inviteId,
+          status: 'ACCEPT',
         },
         type: ['project.update-invite-status'],
       }),
     ])
   }
   return (
-    <div className="flex flex-col justify-center items-center mt-4">
-      <div className="flex mb-6 w-full items-center">
-        <span className="w-1/4">{activity.project.title}</span>
-
-        {activity.project.owner.id === session.user.id ? (
-          <>
-            {activity.type === 'JOIN' ? (
+    <div className="flex flex-col justify-center items-center ">
+      {activity.project.owner.id === session.user.id ? (
+        <>
+          {activity.type === 'JOIN' ? (
+            <div>
+              <p>
+                {activity.user.name} wants to join {activity.project.title}
+              </p>{' '}
               <div>
-                <p>
-                  {activity.user.name} wants to join {activity.project.title}
-                </p>{' '}
-                <div>
-                  <button
-                    onClick={() =>
-                      handleAcceptInvite({
+                <ActionButton
+                  onAction={() =>
+                    handleAcceptInvite({
+                      inviteId: activity.id,
+                      projectId: activity.project.id,
+                      userId: session.user.id,
+                    })
+                  }
+                  onActionChildren={'Accept'}
+                  isLoading={isLoading}
+                />
+
+                <ActionButton
+                  onActionChildren={'Reject'}
+                  onCancel={() =>
+                    dispatch({
+                      type: ['project.update-invite-status'],
+                      payload: {
+                        status: 'REJECT',
                         inviteId: activity.id,
-                        projectId: activity.project.id,
-                        userId: session.user.id,
-                      })
-                    }
-                  >
-                    Accept
-                  </button>
-                  <p>Reject</p>
-                </div>
+                      },
+                    })
+                  }
+                />
               </div>
-            ) : (
-              <div className=" justify-self-center w-full">
-                <p>
-                  {activity.status === 'PENDING' ? (
-                    <div className="flex justify-between items-center">
-                      <p>
-                        Invite was sent to <strong>{activity.user.name}</strong>{' '}
-                        <time dateTime={activity.createdAt.toISOString()}>
-                          {formatDistanceToNow(activity.createdAt)} ago
-                        </time>{' '}
-                      </p>
-
-                      <ActionButton
-                        className="mr-6"
-                        onActionChildren={'Remove'}
-                        onCancel={() => {
-                          dispatch({
-                            payload: {
-                              requestId: activity.id,
-                            },
-                            type: ['project.cancel-request'],
-                          })
-                        }}
-                      />
-                    </div>
-                  ) : (
+            </div>
+          ) : (
+            <div className=" justify-self-center w-full">
+              <p>
+                {activity.status === 'PENDING' ? (
+                  <div className="flex justify-between items-center">
                     <p>
-                      {activity.user.name} has{' '}
-                      {activity.status === 'ACCEPT' ? 'acceted' : 'rejected'}{' '}
-                      your invite to {activity.project.title}
+                      Invite was sent to <strong>{activity.user.name}</strong>{' '}
+                      <time dateTime={activity.createdAt.toISOString()}>
+                        {formatDistanceToNow(activity.createdAt)} ago
+                      </time>{' '}
                     </p>
-                  )}
-                </p>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="w-full">
-              {activity.status === 'PENDING' ? (
-                <div className="flex justify-between items-center">
-                  {activity.type === 'INVITE' ? (
-                    <>
-                      <p>
-                        Invited you to join{' '}
-                        <strong className="mr-2">
-                          {activity.project.title}
-                        </strong>{' '}
-                        <time dateTime={activity.createdAt.toISOString()}>
-                          {formatDistanceToNow(activity.createdAt)} ago
-                        </time>{' '}
-                      </p>
 
+                    <ActionButton
+                      className="mr-6"
+                      onActionChildren={'Remove'}
+                      isLoading={isLoading}
+                      onCancel={() => {
+                        dispatch({
+                          payload: {
+                            requestId: activity.id,
+                          },
+                          type: ['project.cancel-request'],
+                        })
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p>
+                    {activity.user.name} has{' '}
+                    {activity.status === 'ACCEPT' ? 'acceted' : 'rejected'} your
+                    invite to {activity.project.title}
+                  </p>
+                )}
+              </p>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="w-full">
+            {activity.status === 'PENDING' ? (
+              <div className="flex justify-between items-center">
+                {activity.type === 'INVITE' ? (
+                  <>
+                    <div>
+                      Invited you to join{' '}
+                      <strong className="mr-2">{activity.project.title}</strong>{' '}
+                      <time dateTime={activity.createdAt.toISOString()}>
+                        {formatDistanceToNow(activity.createdAt)} ago
+                      </time>{' '}
+                      <p>
+                        {`"`}
+                        {activity.message}
+                        {`"`}
+                      </p>
+                    </div>
+                    <div className="flex">
                       <ActionButton
                         className="mr-6"
                         onActionChildren={'Remove'}
+                        isLoading={isLoading}
                         onCancel={() => {
                           dispatch({
                             payload: {
@@ -184,6 +204,7 @@ export function Activity({ activity, dispatch }: ActivityProps) {
                       />
                       <ActionButton
                         onActionChildren={'Accept'}
+                        isLoading={isLoading}
                         onAction={() => {
                           handleAcceptInvite({
                             inviteId: activity.id,
@@ -192,45 +213,44 @@ export function Activity({ activity, dispatch }: ActivityProps) {
                           })
                         }}
                       />
-                    </>
-                  ) : (
-                    <>
-                      <p>
-                        Requested to join{' '}
-                        <strong className="mr-2">
-                          {activity.project.title}
-                        </strong>{' '}
-                        <time dateTime={activity.createdAt.toISOString()}>
-                          {formatDistanceToNow(activity.createdAt)} ago
-                        </time>{' '}
-                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      Requested to join{' '}
+                      <strong className="mr-2">{activity.project.title}</strong>{' '}
+                      <time dateTime={activity.createdAt.toISOString()}>
+                        {formatDistanceToNow(activity.createdAt)} ago
+                      </time>{' '}
+                    </p>
 
-                      <ActionButton
-                        className="mr-6"
-                        onActionChildren={'Remove'}
-                        onCancel={() => {
-                          dispatch({
-                            payload: {
-                              requestId: activity.id,
-                            },
-                            type: ['project.cancel-request'],
-                          })
-                        }}
-                      />
-                    </>
-                  )}
-                </div>
-              ) : (
-                <p>
-                  {activity.user.name}{' '}
-                  {activity.status === 'ACCEPT' ? 'accepted' : 'rejected'} your
-                  request to join {activity.project.title}
-                </p>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+                    <ActionButton
+                      className="mr-6"
+                      onActionChildren={'Remove'}
+                      isLoading={isLoading}
+                      onCancel={() => {
+                        dispatch({
+                          payload: {
+                            requestId: activity.id,
+                          },
+                          type: ['project.cancel-request'],
+                        })
+                      }}
+                    />
+                  </>
+                )}
+              </div>
+            ) : (
+              <p>
+                {activity.user.name}{' '}
+                {activity.status === 'ACCEPT' ? 'accepted' : 'rejected'} your
+                request to join {activity.project.title}
+              </p>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }

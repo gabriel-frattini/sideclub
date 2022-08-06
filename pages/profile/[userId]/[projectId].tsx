@@ -50,6 +50,7 @@ import type { NextPageWithAuthAndLayout } from '@/lib/types'
 import { projectReducer } from 'utils/reducer'
 import { TDispatch } from 'trpc-reducer'
 import { AppRouter } from '@/server/routers/_app'
+import Link from 'next/link'
 
 const ProjectPage: NextPageWithAuthAndLayout = () => {
   const { data: session } = useSession()
@@ -297,7 +298,11 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
                 <AddCommentForm projectId={state.data.project.id} />
               </div>
             ) : (
-              <div>Log in to post a comment</div>
+              <div className="cursor-pointer max-w-fit">
+                <Link replace href="/sign-in">
+                  Log in to post a comment
+                </Link>
+              </div>
             )}
           </div>
         </div>
@@ -472,6 +477,7 @@ function AddCommentForm({ projectId }: { projectId: number }) {
       {
         projectId,
         content: data.content,
+        private: true,
       },
       {
         onSuccess: () => {

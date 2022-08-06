@@ -38,14 +38,14 @@ export function Layout({ children }: LayoutProps) {
               </a>
             </Link>
             <div className="flex items-center gap-2 md:gap-4">
-              {/* <IconButton
+              <IconButton
                 variant="secondary"
                 onClick={() => {
                   setIsSearchDialogOpen(true)
                 }}
               >
                 <SearchIcon className="w-4 h-4" />
-              </IconButton> */}
+              </IconButton>
               <NotificationIcon />
 
               <Menu>
