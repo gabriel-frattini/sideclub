@@ -530,7 +530,7 @@ function Comment({
         ) : (
           <div>
             <ActionButton
-              disabled={session ? session.user.id : true}
+              disabled={session && session.user ? true : false}
               onAction={onInvite}
               didPerformAction={invitedByOwner.some(
                 (details) => details.project.ownerId === session!.user.id
