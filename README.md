@@ -1,5 +1,7 @@
 ## Sideclub
 
+Sideclub is a simple social network that allows members to share a sideproject idea and invite other members to join them or request to join someone else. Features include a simple Markdown-based editor with preview, join and invite, comments and votes, image drag-and-drop and a clean responsive layout
+
 ## Setup
 
 ### Install dependencies
