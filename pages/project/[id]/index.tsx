@@ -143,7 +143,7 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
     const handleInviteRequest = () => {
       dispatch({
         payload: {
-          userId: session!.user.id,
+          userId: session?.user.id,
           projectId: state.data.project.id,
           message: 'this is a invite',
         },
@@ -532,10 +532,9 @@ function Comment({
         ) : (
           <div>
             <ActionButton
-              disabled={session && session.user ? true : false}
               onAction={onInvite}
               didPerformAction={invitedByOwner.some(
-                (details) => details.project.ownerId === session!.user.id
+                (details) => details.project.ownerId === session?.user.id
               )}
               isLoading={isLoading}
               onCancel={onCancel}
