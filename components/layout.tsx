@@ -26,7 +26,6 @@ export function Layout({ children }: LayoutProps) {
   const { data: session } = useSession()
   const { theme, themes, setTheme } = useTheme()
   const [isSearchDialogOpen, setIsSearchDialogOpen] = React.useState(false)
-
   if (!session) {
     return (
       <div className="bg-gray-50">
