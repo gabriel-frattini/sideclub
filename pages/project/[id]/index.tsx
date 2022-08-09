@@ -141,14 +141,21 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
     }
 
     const handleInviteRequest = (userId: string) => {
-      dispatch({
-        payload: {
-          userId,
-          projectId: state.data.project.id,
-          message: 'this is a invite',
+      dispatch(
+        {
+          payload: {
+            userId,
+            projectId: state.data.project.id,
+            message: 'this is a invite',
+          },
+          type: ['project.invite-to-project'],
         },
-        type: ['project.invite-to-project'],
-      })
+        {
+          args: {
+            sessionId: session?.user.id,
+          },
+        }
+      )
     }
 
     type voteProps = { type: 'UP' | 'DOWN' }
