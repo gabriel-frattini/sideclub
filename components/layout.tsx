@@ -45,7 +45,9 @@ export function Layout({ children }: LayoutProps) {
               >
                 <SearchIcon className="w-4 h-4" />
               </IconButton>
-              <NotificationIcon />
+              <Link href="/sign-in" replace>
+                <NotificationIcon className="cursor-pointer" />
+              </Link>
 
               <Menu>
                 <MenuButton className="relative inline-flex rounded-full group focus-ring"></MenuButton>
@@ -113,6 +115,14 @@ export function Layout({ children }: LayoutProps) {
           </a>
         </Link>
         <div className="flex items-center gap-2 md:gap-4">
+          <IconButton
+            variant="secondary"
+            onClick={() => {
+              setIsSearchDialogOpen(true)
+            }}
+          >
+            <SearchIcon className="w-4 h-4" />
+          </IconButton>
           <Link href="/notifications" replace>
             <NotificationIcon className="cursor-pointer" />
           </Link>
