@@ -140,10 +140,10 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
       }
     }
 
-    const handleInviteRequest = () => {
+    const handleInviteRequest = (userId: string) => {
       dispatch({
         payload: {
-          userId: session?.user.id,
+          userId,
           projectId: state.data.project.id,
           message: 'this is a invite',
         },
@@ -358,7 +358,7 @@ const ProjectPage: NextPageWithAuthAndLayout = () => {
                       <Comment
                         isLoading={state.isDispatching}
                         onCancel={() => handleCancelRequest({ isInvite: true })}
-                        onInvite={handleInviteRequest}
+                        onInvite={() => handleInviteRequest(comment.owner.id)}
                         projectId={state.data.project.id}
                         comment={comment}
                         invitedByOwner={state.data.invitedByUser}
