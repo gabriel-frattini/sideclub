@@ -47,11 +47,7 @@ export const publicRouter = createRouter()
               userId: true,
             },
           },
-          _count: {
-            select: {
-              comments: true,
-            },
-          },
+          comments: true,
         },
       })
 
